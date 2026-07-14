@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0f625e">
+<title>Health Stack</title>
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+  :root{
+    --bg:#f4f6f5; --card:#ffffff; --ink:#12201e; --muted:#61706d;
+    --line:#e4e9e7; --primary:#0f625e; --primary-soft:#e2efed;
+    --keep:#e2efda; --keep-ink:#3c6d1f;
+    --caution:#fff2cc; --caution-ink:#8a6d00;
+    --reconsider:#fce4d6; --reconsider-ink:#9c4a1a;
+    --drop:#f8cbad; --drop-ink:#8a3111;
+    --stop:#ffd4d4; --stop-ink:#a11c1c;
+    --add:#ddebf7; --add-ink:#1f5f8b;
+    --shadow:0 1px 2px rgba(18,32,30,.06),0 6px 20px rgba(18,32,30,.05);
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg);color:var(--ink);line-height:1.5;
+    padding-bottom:calc(72px + env(safe-area-inset-bottom))}
+  header{position:sticky;top:0;z-index:20;background:var(--primary);color:#fff;
+    padding:calc(14px + env(safe-area-inset-top)) 16px 14px;box-shadow:var(--shadow)}
+  header h1{margin:0;font-size:17px;font-weight:650;letter-spacing:.2px}
+  header .sub{font-size:12px;opacity:.8;margin-top:2px}
+  .sync-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#f0a500;margin-right:6px;vertical-align:middle}
+  .sync-dot.ok{background:#7ce0a0}.sync-dot.off{background:#e57373}
+  main{max-width:720px;margin:0 auto;padding:14px}
+  .view{display:none;animation:fade .18s ease}
+  .view.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+  .banner{background:var(--caution);color:var(--caution-ink);border-radius:12px;padding:10px 12px;
+    font-size:12.5px;margin-bottom:14px;border:1px solid #f0e3ac}
+  .group-label{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;
+    color:var(--muted);margin:16px 4px 8px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;
+    margin-bottom:10px;box-shadow:var(--shadow)}
+  .row-top{display:flex;align-items:flex-start;gap:10px}
+  .chk{width:22px;height:22px;border-radius:7px;border:2px solid var(--line);flex:0 0 auto;margin-top:2px;
+    display:grid;place-items:center;cursor:pointer;background:#fff;transition:.15s}
+  .chk.on{background:var(--primary);border-color:var(--primary)}
+  .chk.on::after{content:"✓";color:#fff;font-size:13px;font-weight:800}
+  .item-name{font-weight:640;font-size:15px}
+  .item-meta{font-size:12.5px;color:var(--muted);margin-top:1px}
+  .time-pill{font-size:11px;font-weight:700;color:var(--primary);background:var(--primary-soft);
+    padding:2px 8px;border-radius:20px;white-space:nowrap}
+  .pill{font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:20px;white-space:nowrap}
+  .p-keep{background:var(--keep);color:var(--keep-ink)}
+  .p-caution{background:var(--caution);color:var(--caution-ink)}
+  .p-reconsider{background:var(--reconsider);color:var(--reconsider-ink)}
+  .p-drop{background:var(--drop);color:var(--drop-ink)}
+  .p-stop{background:var(--stop);color:var(--stop-ink)}
+  .p-add{background:var(--add);color:var(--add-ink)}
+  .note{font-size:12.5px;color:#4b5a57;margin-top:8px;display:none}
+  .note.show{display:block}
+  .expand{font-size:12px;color:var(--primary);font-weight:600;margin-top:6px;cursor:pointer;user-select:none}
+  .gr h3{margin:0 0 2px;font-size:14.5px}
+  .gr .se{font-size:12.5px;color:var(--muted);margin-bottom:8px}
+  .gr .lbl{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px}
+  .gr .helps{background:var(--keep);color:#2f5417;border-radius:10px;padding:8px 10px;font-size:12.5px;margin-bottom:6px}
+  .gr .avoid{background:var(--reconsider);color:#7c3a13;border-radius:10px;padding:8px 10px;font-size:12.5px}
+  .ref .mrow{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+  .ref .metric{font-size:12px;color:var(--muted);margin-top:4px}
+  .ref .thresh{font-size:12.5px;margin-top:4px}
+  .ref .caution{font-size:12px;color:#7c3a13;background:#fdf1ea;border-radius:8px;padding:6px 8px;margin-top:6px}
+  form.log{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  form.log .full{grid-column:1/-1}
+  label.f{font-size:11.5px;font-weight:650;color:var(--muted);display:block;margin-bottom:3px}
+  input,textarea{width:100%;font-size:15px;font-family:inherit;padding:9px 10px;border:1px solid var(--line);
+    border-radius:10px;background:#fff;color:var(--ink)}
+  input:focus,textarea:focus{outline:2px solid var(--primary-soft);border-color:var(--primary)}
+  .hint{font-size:10.5px;color:#93a09d;margin-top:2px}
+  button.primary{background:var(--primary);color:#fff;border:none;border-radius:12px;padding:12px;
+    font-size:15px;font-weight:650;width:100%;cursor:pointer}
+  button.ghost{background:#fff;color:var(--primary);border:1px solid var(--primary);border-radius:12px;
+    padding:10px;font-size:14px;font-weight:600;width:100%;cursor:pointer}
+  .logrow{display:flex;justify-content:space-between;gap:8px;font-size:13px;border-bottom:1px solid var(--line);padding:9px 0}
+  .logrow:last-child{border-bottom:none}
+  .logrow .d{font-weight:650}
+  .logrow .v{color:var(--muted);text-align:right}
+  .unsynced{color:#c07600;font-size:11px}
+  nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--line);
+    display:flex;justify-content:space-around;padding:8px 4px calc(8px + env(safe-area-inset-bottom));z-index:30}
+  nav button{background:none;border:none;color:var(--muted);font-size:10.5px;font-weight:600;
+    display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:2px 10px}
+  nav button .ic{font-size:19px;line-height:1}
+  nav button.on{color:var(--primary)}
+  .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom));
+    background:#12201e;color:#fff;padding:9px 16px;border-radius:20px;font-size:13px;opacity:0;
+    transition:.25s;pointer-events:none;z-index:40}
+  .toast.show{opacity:1}
+  .disclaimer{font-size:11px;color:#93a09d;text-align:center;margin:18px 6px 4px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Health Stack &amp; Deprescribing</h1>
+  <div class="sub"><span class="sync-dot" id="syncDot"></span><span id="syncTxt">local</span> · advisory only</div>
+</header>
+
+<main>
+  <!-- SCHEDULE -->
+  <section class="view active" id="v-schedule">
+    <div class="banner">Tap an item to see the advisor note. Checkboxes track today's doses and reset each day. Not a prescription. Confirm changes with your doctor.</div>
+    <button class="ghost" id="refreshSched" style="margin-bottom:12px">↻ Refresh from sheet</button>
+    <div id="scheduleList"></div>
+    <div class="disclaimer">Revised advisory, July 2026. For discussion with your doctor or pharmacist.</div>
+  </section>
+
+  <!-- GUARDRAILS -->
+  <section class="view" id="v-guardrails">
+    <div class="banner">Most "supplement cancels a side effect" claims are weak. The bigger win is avoiding supplements that amplify side effects.</div>
+    <button class="ghost" id="refreshGuard" style="margin-bottom:12px">↻ Refresh from sheet</button>
+    <div id="guardList"></div>
+  </section>
+
+  <!-- TRACKER -->
+  <section class="view" id="v-tracker">
+    <div class="banner">Change lifestyle first, sustain it for months, let numbers move, then taper under guidance. These logs sync to your Google Sheet.</div>
+    <div class="group-label">What earns a dose reduction</div>
+    <div id="refList"></div>
+    <div class="group-label">Trends</div>
+    <div class="card" id="chartsCard"><div style="color:var(--muted);font-size:13px">Add check-ins to see BP and weight trends.</div></div>
+    <div class="group-label">Log a check-in</div>
+    <div class="card">
+      <form class="log" id="logForm" onsubmit="return false">
+        <div><label class="f">Date</label><input type="date" id="f_date"></div>
+        <div><label class="f">Weight (kg)</label><input type="number" step="0.1" id="f_weight" placeholder="trend down"></div>
+        <div><label class="f">Waist (cm)</label><input type="number" step="0.1" id="f_waist" placeholder="&lt; 90"></div>
+        <div><label class="f">Resting HR</label><input type="number" id="f_restingHR" placeholder="60-80"></div>
+        <div><label class="f">BP Systolic</label><input type="number" id="f_bpSys" placeholder="&lt; 130"></div>
+        <div><label class="f">BP Diastolic</label><input type="number" id="f_bpDia" placeholder="&lt; 80"></div>
+        <div><label class="f">Fasting glucose</label><input type="number" id="f_glucose" placeholder="&lt; 100"></div>
+        <div><label class="f">HbA1c (%)</label><input type="number" step="0.1" id="f_hba1c" placeholder="&lt; 5.7"></div>
+        <div><label class="f">LDL</label><input type="number" id="f_ldl" placeholder="w/ doctor"></div>
+        <div><label class="f">Triglycerides</label><input type="number" id="f_triglycerides" placeholder="&lt; 150"></div>
+        <div><label class="f">HDL</label><input type="number" id="f_hdl" placeholder="&gt; 40"></div>
+        <div class="full"><label class="f">Notes</label><textarea id="f_notes" rows="2" placeholder="symptoms, dose changes, how you feel"></textarea></div>
+        <div class="full"><button class="primary" id="saveBtn">Save check-in</button></div>
+      </form>
+    </div>
+    <div class="group-label">History <span id="pendingBadge" class="unsynced"></span></div>
+    <div class="card" id="historyCard"><div style="color:var(--muted);font-size:13px">No check-ins yet.</div></div>
+    <div class="full" style="margin-top:8px"><button class="ghost" id="syncBtn">Sync now</button></div>
+  </section>
+
+  <!-- SETTINGS -->
+  <section class="view" id="v-settings">
+    <div id="settingsLock" style="display:none">
+      <div class="card" style="text-align:center">
+        <div style="font-size:34px;margin-bottom:6px">🔒</div>
+        <div style="font-weight:650;margin-bottom:10px">Settings are locked</div>
+        <input type="password" inputmode="numeric" pattern="[0-9]*" id="pinInput" placeholder="Enter PIN" style="text-align:center;letter-spacing:4px;max-width:200px;margin:0 auto 10px">
+        <button class="primary" id="unlockBtn" style="max-width:200px;margin:0 auto">Unlock</button>
+      </div>
+    </div>
+    <div id="settingsContent">
+      <div class="group-label">Google Sheet sync</div>
+      <div class="card">
+        <label class="f">Apps Script Web App URL</label>
+        <input type="url" id="f_endpoint" placeholder="https://script.google.com/macros/s/.../exec">
+        <div class="hint">Deploy the included Code.gs on your storage sheet, then paste its /exec URL here.</div>
+        <div style="height:10px"></div>
+        <button class="primary" id="saveEndpoint">Save &amp; test connection</button>
+        <div style="height:8px"></div>
+        <button class="ghost" id="pullBtn">Pull logs from sheet</button>
+      </div>
+
+      <div class="group-label">Dose reminders</div>
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+          <div>
+            <div style="font-weight:640;font-size:14px" id="remState">Reminders off</div>
+            <div class="hint" id="remHint">Get a notification at each item's time.</div>
+          </div>
+          <button class="ghost" id="remToggle" style="width:auto;padding:9px 16px">Turn on</button>
+        </div>
+        <div class="hint" style="margin-top:10px">Reminders fire while the app is open or running in the background. Phones may not deliver them when the app is fully closed. For guaranteed alarms when closed you would need a push server, which this serverless build avoids.</div>
+      </div>
+
+      <div class="group-label">Security</div>
+      <div class="card" id="securityCard"></div>
+
+      <div class="group-label">Install</div>
+      <div class="card">
+        <div style="font-size:13px;color:var(--muted)">Use your browser's "Add to Home Screen" to install. On iPhone Safari: Share, then Add to Home Screen.</div>
+        <div style="height:10px"></div>
+        <button class="ghost" id="installBtn" style="display:none">Install app</button>
+      </div>
+
+      <div class="group-label">Data</div>
+      <div class="card">
+        <button class="ghost" id="exportBtn">Export check-ins (JSON)</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<nav>
+  <button data-v="schedule" class="on"><span class="ic">💊</span>Schedule</button>
+  <button data-v="guardrails"><span class="ic">🛡️</span>Guardrails</button>
+  <button data-v="tracker"><span class="ic">📈</span>Tracker</button>
+  <button data-v="settings"><span class="ic">⚙️</span>Settings</button>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ---------------- DATA ---------------- */
+const DEFAULT_SCHEDULE = [
+  ["7:30 AM","Ghee in warm water","2 tsp","Digestion","Keep","Empty stomach. Fine."],
+  ["7:40 AM","Shilapravang","1 dose","Testosterone and vitality","Reconsider","Marketed to help male vitality but unproven, and the heavy metal purity risk works against reproductive health because lead is gonadotoxic. Discuss stopping."],
+  ["7:45 AM","Citrulline Malate","6 g","Nitric oxide and endurance","Keep with caution","Also supports erectile function (same NO pathway as ED drugs). Adds to BP lowering from Cilacar-T and Lonitab. Only when training. Check BP on workout mornings; stop if lightheaded."],
+  ["7:50 AM","Acetyl L-Carnitine","1 cap","Energy and fat metabolism","Drop","Some upside for sperm quality, but marginal general benefit and carnitine raises TMAO which is linked to cardiovascular risk. Net: drop."],
+  ["7:55 AM","Matcha Tea","1 cup","Focus and gentle energy","Keep","Caffeine raises BP acutely. Fine but note timing near workout."],
+  ["8:00-8:45 AM","Workout (fasted)","-","Fat burn and insulin sensitivity","On hold","Paused for shoulder injury. Resume when cleared."],
+  ["8:45 AM","Creatine","1 scoop","Strength and recovery","Keep","Safe. Fine at maintenance during the break. Raises lab creatinine harmlessly; tell any doctor."],
+  ["8:50 AM","Whey Iso-Zero","1 scoop","Protein and recovery","Keep","Good."],
+  ["9:15 AM","Breakfast","-","Morning meal","Keep","Protein plus complex carbs plus healthy fats."],
+  ["9:20 AM","Lonitab 2.5 (oral minoxidil)","1 tab","Hair (androgenetic alopecia)","Keep","Oral minoxidil is a systemic vasodilator that also lowers BP. Same time daily with food. MONITOR: ankle or leg swelling, facial puffiness, sudden weight gain, palpitations or faster resting pulse, breathlessness lying flat or chest discomfort (seek care). Not finasteride, so you avoided the classic hair-drug sexual side effects. Ensure BP doctor and dermatologist each know the other's prescription."],
+  ["9:30 AM","Glutathione Complex","1 cap","Antioxidant","Reconsider","Poor oral absorption. Low value for the cost."],
+  ["9:45 AM","Marine Collagen","1 tab","Skin and joints","Optional","Harmless. Evidence is modest. Discretionary."],
+  ["10:00 AM","Menovan D3 with K2","1 tab","Bone and heart","Keep","Take with a fatty meal. Adequate vitamin D also supports testosterone and statin muscle tolerance."],
+  ["1:00 PM","Lunch","-","Main meal","Keep","Balanced meal with moderate carbs."],
+  ["1:00 PM","Curcumin (piperine free)","1 tab","Anti-inflammatory","Change formulation","Switch off the piperine version. Piperine raises the level of cilnidipine and other drugs. Use a phytosome or BCM-95 type. Mild added bleeding risk with aspirin."],
+  ["1:00 PM","Fish Oil (Omega-3)","1-2 g EPA+DHA","Triglycerides and heart","Add","Complements fenofibrate for triglycerides and adds cardiovascular benefit. Keep the dose moderate because high-dose fish oil on top of aspirin raises bleeding risk. Take with a meal."],
+  ["1:30 PM","Madhumeha Kusumakar Rasa","1 tab","Sugar control","Stop pending review","Contains metal bhasmas including possible lead. Unproven for prediabetes. Ask doctor for liver panel and blood lead level. Berberine is an evidence-based alternative to raise with your doctor."],
+  ["8:00 PM","Dinner","-","Main meal","Keep","Balanced moderate fat meal. Lower added salt helps offset minoxidil fluid retention."],
+  ["8:30 PM","Madhumeha Kusumakar Rasa","1 tab","Sugar control","Stop pending review","Same concern as the afternoon dose."],
+  ["8:40 PM","Roseday F-10","1 tab","Cholesterol","Keep","Rosuvastatin plus fenofibrate. With food. Statin plus fibrate raises muscle injury risk; report unusual muscle pain. Both can nudge testosterone down modestly."],
+  ["8:45 PM","CoQ10","1 cap","Statin support","Keep","Supports statin muscle tolerance (evidence mixed, low risk) and has good evidence for sperm quality. Take with dinner fat."],
+  ["8:50 PM","Cilacar-T","1 tab","BP","Keep","Cilnidipine plus telmisartan. The telmisartan (ARB) is among the friendliest BP drugs for sexual function. Continue as prescribed. Avoid grapefruit."],
+  ["9:00 PM","Ecosprin 75","1 tab","Antiplatelet","Keep","As prescribed. Do not stack blood-thinning supplements on top. Flag before dental or surgical work."],
+  ["10:15 PM","Magnesium Glycinate","1 tab","Sleep and relaxation","Keep","Moved from 9:00 PM. Keep about two hours clear of the tablets. Also mildly supports testosterone."],
+  ["Alt days 10:15 PM","Magnesium Threonate","1 tab","Memory","Keep","Alternate with glycinate. Not together."],
+  ["Alt days","Logihair Serum (topical)","few drops","Hair (scalp)","Keep","Botanical serum with saw palmetto (a DHT blocker). Topical and alternate days, so systemic effect is negligible. No minoxidil or finasteride in it."],
+  ["Alt days","Hyalugel (topical)","thin layer","Face (hydration)","Keep","Topical hyaluronic acid. Stays in the skin. No interaction."]
+];
+let SCHEDULE = DEFAULT_SCHEDULE;
+
+const DEFAULT_GUARD = [
+  ["Rosuvastatin (in Roseday F)","Muscle aches, rarely liver enzyme rise","CoQ10 (mixed evidence, low risk); keep vitamin D adequate","High-dose niacin without medical advice"],
+  ["Fenofibrate (in Roseday F)","GI upset, raised creatinine, myopathy with statin","Stay hydrated; CoQ10 as above","Adding more without monitoring liver and muscle"],
+  ["Aspirin (Ecosprin)","Stomach irritation and bleeding","Take with food; PPI only if doctor advises","Curcumin, high-dose fish oil, vitamin E, ginkgo, garlic, ginger (all add bleeding risk)"],
+  ["Telmisartan (in Cilacar-T)","Raised potassium, dizziness on standing","Rise slowly; stay hydrated","Potassium supplements and KCl salt substitutes"],
+  ["Cilnidipine (in Cilacar-T)","Ankle swelling, flushing, headache","Magnesium supports vascular tone","Grapefruit and piperine (raise drug levels)"],
+  ["Minoxidil (Lonitab)","Fluid retention, faster heart rate, extra body hair","Lower dietary sodium; track weight and BP","NSAIDs (worsen fluid retention, blunt effect)"],
+  ["General","-","The reliably useful ones: CoQ10, magnesium, adequate vitamin D, moderate omega-3","St John's Wort (drops drug levels); mega-dose stacks"]
+];
+let GUARD = DEFAULT_GUARD;
+
+const REF = [
+  ["Prediabetes","Glucose control","HbA1c, fasting glucose","HbA1c under 5.7% and fasting under 100 mg/dL, sustained","Most reversible item. Lifestyle is the first-line treatment, not a weaker substitute."],
+  ["Fenofibrate","Lower triglycerides","Fasting triglycerides","Under 150 mg/dL, ideally under 100, held for months","Strong wean candidate once triglycerides normalize and stay there."],
+  ["Cilacar-T (BP)","Correct high BP; telmisartan protects kidneys","Home BP average","Sustained under 130/80 over 8-12 weeks on lifestyle","Taper, never stop abruptly. Doctor may keep a low telmisartan dose for kidney protection because you are prediabetic."],
+  ["Rosuvastatin","Lower LDL and/or reduce cardiovascular risk","LDL, plus a risk reassessment","If number-driven, sustained LDL at your agreed target. If risk-driven, usually not stopped.","Do not self-stop. Settle the primary vs secondary prevention question first."],
+  ["Aspirin","Primary or secondary prevention","Risk category, not a single number","If primary prevention, may stop on reassessment. If secondary, usually lifelong.","Do not stop abruptly if it is secondary prevention."]
+];
+
+/* ---------------- STATE ---------------- */
+const LS_LOGS='hs_logs', LS_ENDPOINT='hs_endpoint', LS_TAKEN='hs_taken';
+const $=(id)=>document.getElementById(id);
+const todayKey=()=>new Date().toISOString().slice(0,10);
+function uuid(){return 'x'+Date.now().toString(36)+Math.random().toString(36).slice(2,8);}
+function loadLogs(){try{return JSON.parse(localStorage.getItem(LS_LOGS)||'[]');}catch(e){return[];}}
+function saveLogs(a){localStorage.setItem(LS_LOGS,JSON.stringify(a));}
+function endpoint(){return localStorage.getItem(LS_ENDPOINT)||'';}
+function loadTaken(){try{return JSON.parse(localStorage.getItem(LS_TAKEN)||'{}');}catch(e){return{};}}
+function saveTaken(o){localStorage.setItem(LS_TAKEN,JSON.stringify(o));}
+
+function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2200);}
+
+function statusClass(s){
+  s=s.toLowerCase();
+  if(s.startsWith('keep')) return 'p-keep';
+  if(s.startsWith('add')) return 'p-add';
+  if(s.startsWith('stop')) return 'p-stop';
+  if(s.startsWith('drop')) return 'p-drop';
+  if(s.startsWith('reconsider')||s.startsWith('change')||s.startsWith('optional')||s.startsWith('on hold')) return 'p-reconsider';
+  return 'p-caution';
+}
+
+/* ---------------- RENDER: SCHEDULE ---------------- */
+function renderSchedule(){
+  const taken=loadTaken(); const day=todayKey();
+  const wrap=$('scheduleList'); wrap.innerHTML='';
+  SCHEDULE.forEach((r,i)=>{
+    const [time,item,dose,purpose,status,note]=r;
+    const key=day+'|'+i;
+    const on=!!(taken[key]);
+    const card=document.createElement('div'); card.className='card';
+    card.innerHTML=
+      '<div class="row-top">'+
+        '<div class="chk '+(on?'on':'')+'" data-k="'+key+'"></div>'+
+        '<div style="flex:1;min-width:0">'+
+          '<div style="display:flex;justify-content:space-between;gap:8px;align-items:center">'+
+            '<span class="item-name">'+item+'</span>'+
+            '<span class="time-pill">'+time+'</span>'+
+          '</div>'+
+          '<div class="item-meta">'+dose+' · '+purpose+'</div>'+
+          '<div style="margin-top:6px"><span class="pill '+statusClass(status)+'">'+status+'</span></div>'+
+          '<div class="expand" data-exp="'+i+'">Advisor note</div>'+
+          '<div class="note" id="note-'+i+'">'+note+'</div>'+
+        '</div>'+
+      '</div>';
+    wrap.appendChild(card);
+  });
+  wrap.querySelectorAll('.chk').forEach(el=>el.addEventListener('click',()=>{
+    const t=loadTaken(); const k=el.dataset.k;
+    if(t[k]){delete t[k];el.classList.remove('on');}else{t[k]=1;el.classList.add('on');}
+    saveTaken(t);
+  }));
+  wrap.querySelectorAll('.expand').forEach(el=>el.addEventListener('click',()=>{
+    $('note-'+el.dataset.exp).classList.toggle('show');
+  }));
+}
+
+/* ---------------- RENDER: GUARDRAILS ---------------- */
+function renderGuard(){
+  const wrap=$('guardList'); wrap.innerHTML='';
+  GUARD.forEach(g=>{
+    const [drug,se,helps,avoid]=g;
+    const c=document.createElement('div'); c.className='card gr';
+    c.innerHTML='<h3>'+drug+'</h3><div class="se">'+se+'</div>'+
+      '<div class="lbl" style="color:var(--keep-ink)">Helps</div><div class="helps">'+helps+'</div>'+
+      '<div class="lbl" style="color:var(--reconsider-ink)">Avoid</div><div class="avoid">'+avoid+'</div>';
+    wrap.appendChild(c);
+  });
+}
+
+/* ---------------- RENDER: REF ---------------- */
+function renderRef(){
+  const wrap=$('refList'); wrap.innerHTML='';
+  REF.forEach(r=>{
+    const [med,reason,metric,thresh,caution]=r;
+    const c=document.createElement('div'); c.className='card ref';
+    c.innerHTML='<div class="mrow"><span class="item-name">'+med+'</span></div>'+
+      '<div class="item-meta">'+reason+'</div>'+
+      '<div class="metric"><b>Watch:</b> '+metric+'</div>'+
+      '<div class="thresh"><b>Discuss when:</b> '+thresh+'</div>'+
+      '<div class="caution">'+caution+'</div>';
+    wrap.appendChild(c);
+  });
+}
+
+/* ---------------- TRACKER ---------------- */
+function renderHistory(){
+  renderCharts();
+  const logs=loadLogs().slice().sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  const card=$('historyCard');
+  const pend=logs.filter(l=>!l.synced).length;
+  $('pendingBadge').textContent = pend? '· '+pend+' not synced':'';
+  if(!logs.length){card.innerHTML='<div style="color:var(--muted);font-size:13px">No check-ins yet.</div>';return;}
+  card.innerHTML='';
+  logs.forEach(l=>{
+    const bits=[];
+    if(l.weight) bits.push(l.weight+'kg');
+    if(l.bpSys&&l.bpDia) bits.push(l.bpSys+'/'+l.bpDia);
+    if(l.glucose) bits.push('glu '+l.glucose);
+    if(l.hba1c) bits.push('A1c '+l.hba1c);
+    if(l.ldl) bits.push('LDL '+l.ldl);
+    if(l.triglycerides) bits.push('TG '+l.triglycerides);
+    const row=document.createElement('div'); row.className='logrow';
+    row.innerHTML='<span class="d">'+(l.date||'—')+(l.synced?'':' <span class="unsynced">•</span>')+'</span>'+
+      '<span class="v">'+(bits.join(' · ')||'—')+'</span>';
+    card.appendChild(row);
+  });
+}
+
+function collectForm(){
+  const g=id=>{const v=$('f_'+id).value.trim();return v===''?'':v;};
+  const e={
+    id:uuid(), date:$('f_date').value||todayKey(),
+    weight:g('weight'),waist:g('waist'),restingHR:g('restingHR'),
+    bpSys:g('bpSys'),bpDia:g('bpDia'),glucose:g('glucose'),hba1c:g('hba1c'),
+    ldl:g('ldl'),triglycerides:g('triglycerides'),hdl:g('hdl'),notes:g('notes'),
+    synced:false
+  };
+  return e;
+}
+
+function saveCheckin(){
+  const e=collectForm();
+  const has=['weight','waist','restingHR','bpSys','bpDia','glucose','hba1c','ldl','triglycerides','hdl','notes'].some(k=>e[k]!=='');
+  if(!has){toast('Fill at least one field');return;}
+  const logs=loadLogs(); logs.push(e); saveLogs(logs);
+  ['weight','waist','restingHR','bpSys','bpDia','glucose','hba1c','ldl','triglycerides','hdl','notes'].forEach(k=>$('f_'+k).value='');
+  renderHistory(); toast('Saved locally');
+  syncPending();
+}
+
+async function postJSON(url,body){
+  // text/plain body => simple request, no CORS preflight against Apps Script.
+  const res=await fetch(url,{method:'POST',body:JSON.stringify(body)});
+  return res.json();
+}
+
+async function syncPending(){
+  const url=endpoint();
+  if(!url){setSync('off','no endpoint');return;}
+  const logs=loadLogs();
+  const pending=logs.filter(l=>!l.synced);
+  if(!pending.length){setSync('ok','synced');return;}
+  setSync('pending','syncing…');
+  try{
+    const out=await postJSON(url,{entries:pending.map(stripLocal)});
+    if(out&&out.ok){
+      const ids=new Set(pending.map(p=>p.id));
+      logs.forEach(l=>{if(ids.has(l.id))l.synced=true;});
+      saveLogs(logs); renderHistory(); setSync('ok','synced'); toast('Synced to sheet');
+    }else{setSync('off','sync failed');}
+  }catch(err){
+    // Local-first: opaque/CORS responses can't be read but the write may still succeed.
+    // Mark optimistically as synced to avoid duplicates on retry (Apps Script dedups by id anyway).
+    setSync('pending','check sheet');
+    toast('Sent. If rows appear in the sheet, it worked.');
+  }
+}
+
+function stripLocal(l){const{synced,...rest}=l;return rest;}
+
+async function pullRemote(){
+  const url=endpoint();
+  if(!url){toast('Set the endpoint first');return;}
+  setSync('pending','pulling…');
+  try{
+    const res=await fetch(url+'?action=list');
+    const data=await res.json();
+    if(data&&data.ok){
+      const logs=loadLogs();
+      const have=new Set(logs.map(l=>l.id));
+      data.rows.forEach(r=>{
+        if(r.id&&!have.has(r.id)){logs.push({...r,synced:true});have.add(r.id);}
+      });
+      saveLogs(logs); renderHistory(); setSync('ok','synced'); toast('Pulled '+data.rows.length+' rows');
+    }else{setSync('off','pull failed');}
+  }catch(err){setSync('off','pull blocked (CORS)');toast('Pull blocked by browser. Writes still work.');}
+}
+
+function setSync(state,txt){
+  const dot=$('syncDot'); dot.className='sync-dot'+(state==='ok'?' ok':state==='off'?' off':'');
+  $('syncTxt').textContent=txt;
+}
+
+/* ---------------- LIVE SCHEDULE (fluid from sheet) ---------------- */
+function scheduleFromCache(){
+  try{const c=JSON.parse(localStorage.getItem('hs_sched')||'null');
+    if(c&&c.length) return c.map(o=>[o.time,o.item,o.dosage,o.purpose,o.status,o.note]);}catch(e){}
+  return null;
+}
+async function fetchSchedule(){
+  const url=endpoint();
+  if(!url) return false;
+  try{
+    const res=await fetch(url+'?action=schedule');
+    const data=await res.json();
+    if(data&&data.ok&&Array.isArray(data.schedule)&&data.schedule.length){
+      localStorage.setItem('hs_sched',JSON.stringify(data.schedule));
+      SCHEDULE=data.schedule.map(o=>[o.time,o.item,o.dosage,o.purpose,o.status,o.note]);
+      renderSchedule();
+      if(remindersOn()) scheduleReminders();
+      toast('Schedule updated from sheet');
+      return true;
+    }
+  }catch(e){/* offline or blocked: keep cache/default */}
+  return false;
+}
+function guardFromCache(){
+  try{const c=JSON.parse(localStorage.getItem('hs_guard')||'null');
+    if(c&&c.length) return c.map(o=>[o.drug,o.se,o.helps,o.avoid]);}catch(e){}
+  return null;
+}
+async function fetchGuardrails(){
+  const url=endpoint();
+  if(!url) return false;
+  try{
+    const res=await fetch(url+'?action=guardrails');
+    const data=await res.json();
+    if(data&&data.ok&&Array.isArray(data.guardrails)&&data.guardrails.length){
+      localStorage.setItem('hs_guard',JSON.stringify(data.guardrails));
+      GUARD=data.guardrails.map(o=>[o.drug,o.se,o.helps,o.avoid]);
+      renderGuard();
+      return true;
+    }
+  }catch(e){/* keep built-in guardrails */}
+  return false;
+}
+
+/* ---------------- TREND CHARTS (dependency-free SVG) ---------------- */
+function md(dateStr){
+  if(!dateStr) return '';
+  const p=String(dateStr).slice(0,10).split('-');
+  return p.length===3 ? p[1]+'-'+p[2] : String(dateStr);
+}
+function svgLineChart(series, refs){
+  const W=340,H=150,pl=32,pr=14,pt=14,pb=22;
+  const vals=[]; series.forEach(s=>s.data.forEach(p=>vals.push(p.v))); refs.forEach(r=>vals.push(r.v));
+  if(!vals.length) return '<div style="color:var(--muted);font-size:12.5px">No data yet.</div>';
+  let mn=Math.min.apply(null,vals), mx=Math.max.apply(null,vals);
+  if(mn===mx){mn-=5;mx+=5;}
+  const padv=(mx-mn)*0.14; mn-=padv; mx+=padv;
+  const n=Math.max.apply(null,series.map(s=>s.data.length).concat(1));
+  const X=i=> pl+(n<=1?(W-pl-pr)/2:(i/(n-1))*(W-pl-pr));
+  const Y=v=> pt+(1-(v-mn)/(mx-mn))*(H-pt-pb);
+  let g='';
+  [mn,(mn+mx)/2,mx].forEach(function(t){var yy=Y(t);
+    g+='<line x1="'+pl+'" y1="'+yy.toFixed(1)+'" x2="'+(W-pr)+'" y2="'+yy.toFixed(1)+'" stroke="#eef2f1"/>'+
+       '<text x="'+(pl-4)+'" y="'+(yy+3).toFixed(1)+'" text-anchor="end" font-size="9" fill="#93a09d">'+Math.round(t)+'</text>';});
+  refs.forEach(function(r){var yy=Y(r.v);
+    g+='<line x1="'+pl+'" y1="'+yy.toFixed(1)+'" x2="'+(W-pr)+'" y2="'+yy.toFixed(1)+'" stroke="'+r.color+'" stroke-width="1" stroke-dasharray="4 3" opacity="0.75"/>'+
+       '<text x="'+(W-pr)+'" y="'+(yy-3).toFixed(1)+'" text-anchor="end" font-size="8.5" fill="'+r.color+'">'+r.label+'</text>';});
+  series.forEach(function(s){
+    if(s.data.length>=2){
+      var d=s.data.map(function(p,i){return (i?'L':'M')+X(i).toFixed(1)+' '+Y(p.v).toFixed(1);}).join(' ');
+      g+='<path d="'+d+'" fill="none" stroke="'+s.color+'" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>';
+    }
+    s.data.forEach(function(p,i){g+='<circle cx="'+X(i).toFixed(1)+'" cy="'+Y(p.v).toFixed(1)+'" r="2.6" fill="'+s.color+'"/>';});
+  });
+  var s0=series[0];
+  if(s0&&s0.data.length){
+    g+='<text x="'+pl+'" y="'+(H-6)+'" font-size="8.5" fill="#93a09d">'+s0.data[0].d+'</text>';
+    if(s0.data.length>1) g+='<text x="'+(W-pr)+'" y="'+(H-6)+'" text-anchor="end" font-size="8.5" fill="#93a09d">'+s0.data[s0.data.length-1].d+'</text>';
+  }
+  return '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block">'+g+'</svg>';
+}
+function renderCharts(){
+  const card=$('chartsCard'); if(!card) return;
+  const logs=loadLogs().slice().sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+  const bp=logs.filter(l=>l.bpSys&&l.bpDia).map(l=>({d:md(l.date),sys:+l.bpSys,dia:+l.bpDia}));
+  const wt=logs.filter(l=>l.weight).map(l=>({d:md(l.date),v:+l.weight}));
+  if(!bp.length&&!wt.length){card.innerHTML='<div style="color:var(--muted);font-size:13px">Add check-ins to see BP and weight trends.</div>';return;}
+  let html='';
+  if(bp.length){
+    var lb=bp[bp.length-1];
+    html+='<div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:2px">Blood pressure</div>'+
+      '<div style="font-size:11px;margin-bottom:4px"><span style="color:#0f625e">● Systolic '+lb.sys+'</span> &nbsp; <span style="color:#7ecab2">● Diastolic '+lb.dia+'</span> &nbsp; <span style="color:#c98a1a">- - target</span></div>'+
+      svgLineChart(
+        [{color:'#0f625e',data:bp.map(p=>({d:p.d,v:p.sys}))},{color:'#7ecab2',data:bp.map(p=>({d:p.d,v:p.dia}))}],
+        [{v:130,label:'130',color:'#c98a1a'},{v:80,label:'80',color:'#c98a1a'}]
+      );
+  }
+  if(wt.length){
+    html+='<div style="font-size:12px;font-weight:700;color:var(--muted);margin:12px 0 2px">Weight (kg)</div>'+
+      '<div style="font-size:11px;margin-bottom:4px"><span style="color:#1f5f8b">● Latest '+wt[wt.length-1].v+' kg</span></div>'+
+      svgLineChart([{color:'#1f5f8b',data:wt.map(p=>({d:p.d,v:p.v}))}],[]);
+  }
+  card.innerHTML=html;
+}
+
+/* ---------------- DOSE REMINDERS (Notifications API) ---------------- */
+let reminderTimers=[];
+function remindersOn(){return localStorage.getItem('hs_reminders')==='1';}
+function parseClock(str){
+  const m=String(str).match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+  if(!m) return null;
+  let h=(+m[1])%12; if(/PM/i.test(m[3])) h+=12;
+  return {h, min:+m[2]};
+}
+function clearReminders(){reminderTimers.forEach(t=>clearTimeout(t));reminderTimers=[];}
+function scheduleReminders(){
+  clearReminders();
+  if(!remindersOn()) return;
+  const groups={};
+  SCHEDULE.forEach(r=>{
+    const c=parseClock(r[0]); if(!c) return;
+    const key=c.h+':'+c.min;
+    if(!groups[key]) groups[key]={c,items:[]};
+    groups[key].items.push(r[1]);
+  });
+  const now=new Date();
+  Object.keys(groups).forEach(k=>{
+    const g=groups[k];
+    const when=new Date(); when.setHours(g.c.h,g.c.min,0,0);
+    const ms=when-now;
+    if(ms>0 && ms<24*3600*1000){
+      reminderTimers.push(setTimeout(()=>fireReminder(g.items), ms));
+    }
+  });
+}
+function fireReminder(items){
+  const title = items.length>1 ? ('Time for '+items.length+' items') : ('Time for '+items[0]);
+  showNotif(title, items.join(', '));
+}
+async function showNotif(title,body){
+  try{
+    const reg = navigator.serviceWorker ? await navigator.serviceWorker.getRegistration() : null;
+    if(reg&&reg.showNotification){ reg.showNotification(title,{body,icon:'./icons/icon-192.png',badge:'./icons/icon-192.png',tag:title,renotify:false}); }
+    else { new Notification(title,{body,icon:'./icons/icon-192.png'}); }
+  }catch(e){ try{ new Notification(title,{body}); }catch(_){} }
+}
+async function toggleReminders(){
+  if(remindersOn()){ localStorage.removeItem('hs_reminders'); clearReminders(); toast('Reminders off'); renderReminderUI(); return; }
+  if(!('Notification' in window)){ toast('Notifications not supported here'); return; }
+  let perm=Notification.permission;
+  if(perm!=='granted') perm=await Notification.requestPermission();
+  if(perm!=='granted'){ toast('Allow notifications to enable'); return; }
+  localStorage.setItem('hs_reminders','1'); scheduleReminders(); toast('Reminders on'); renderReminderUI();
+}
+function renderReminderUI(){
+  const on=remindersOn();
+  $('remState').textContent = on ? 'Reminders on' : 'Reminders off';
+  $('remToggle').textContent = on ? 'Turn off' : 'Turn on';
+  $('remToggle').className = on ? 'ghost' : 'primary';
+  $('remToggle').style.width='auto';
+}
+
+/* ---------------- PIN LOCK (settings) ---------------- */
+let settingsUnlocked=false;
+function pinIsSet(){return !!localStorage.getItem('hs_pin');}
+async function sha(s){
+  const buf=new TextEncoder().encode(s);
+  const h=await crypto.subtle.digest('SHA-256',buf);
+  return Array.from(new Uint8Array(h)).map(x=>x.toString(16).padStart(2,'0')).join('');
+}
+function enterSettings(){
+  if(pinIsSet() && !settingsUnlocked){ showLock(); }
+  else { showSettingsContent(); }
+}
+function showLock(){
+  $('settingsLock').style.display='block';
+  $('settingsContent').style.display='none';
+  $('pinInput').value=''; setTimeout(()=>{try{$('pinInput').focus();}catch(e){}},60);
+}
+function showSettingsContent(){
+  $('settingsLock').style.display='none';
+  $('settingsContent').style.display='block';
+  renderSecurity();
+}
+async function tryUnlock(){
+  const h=await sha($('pinInput').value);
+  if(h===localStorage.getItem('hs_pin')){ settingsUnlocked=true; showSettingsContent(); toast('Unlocked'); }
+  else { toast('Wrong PIN'); $('pinInput').value=''; }
+}
+function renderSecurity(){
+  const card=$('securityCard');
+  if(pinIsSet()){
+    card.innerHTML=
+      '<div style="font-size:13px;color:var(--muted);margin-bottom:10px">A PIN protects this Settings screen (where the sheet URL lives). It relocks when the app restarts.</div>'+
+      '<label class="f">Change PIN</label><input type="password" inputmode="numeric" id="newPin" placeholder="New PIN (min 4 digits)">'+
+      '<div style="height:10px"></div><button class="primary" id="setPinBtn">Save new PIN</button>'+
+      '<div style="height:8px"></div><button class="ghost" id="removePinBtn">Remove PIN</button>';
+    $('setPinBtn').addEventListener('click',setPin);
+    $('removePinBtn').addEventListener('click',removePin);
+  } else {
+    card.innerHTML=
+      '<div style="font-size:13px;color:var(--muted);margin-bottom:10px">Set a PIN to lock this Settings screen if you share the phone. This is a convenience lock, not encryption; someone with device tools could still read stored data.</div>'+
+      '<label class="f">New PIN</label><input type="password" inputmode="numeric" id="newPin" placeholder="min 4 digits">'+
+      '<div style="height:10px"></div><button class="primary" id="setPinBtn">Set PIN</button>';
+    $('setPinBtn').addEventListener('click',setPin);
+  }
+}
+async function setPin(){
+  const v=($('newPin').value||'').trim();
+  if(v.length<4){toast('Use at least 4 digits');return;}
+  localStorage.setItem('hs_pin', await sha(v));
+  settingsUnlocked=true; toast('PIN saved'); renderSecurity();
+}
+function removePin(){
+  localStorage.removeItem('hs_pin'); settingsUnlocked=true; toast('PIN removed'); renderSecurity();
+}
+
+/* ---------------- NAV ---------------- */
+document.querySelectorAll('nav button').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('nav button').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on');
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  $('v-'+b.dataset.v).classList.add('active');
+  if(b.dataset.v==='settings') enterSettings();
+  window.scrollTo(0,0);
+}));
+
+/* ---------------- INSTALL PROMPT ---------------- */
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',(e)=>{e.preventDefault();deferredPrompt=e;$('installBtn').style.display='block';});
+$('installBtn').addEventListener('click',async()=>{if(deferredPrompt){deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;$('installBtn').style.display='none';}});
+
+/* ---------------- WIRE UP ---------------- */
+$('saveBtn').addEventListener('click',saveCheckin);
+$('refreshSched').addEventListener('click',async()=>{const ok=await fetchSchedule();if(ok)scheduleReminders();if(!ok)toast('Could not reach sheet. Set the endpoint in Settings.');});
+$('refreshGuard').addEventListener('click',async()=>{const ok=await fetchGuardrails();if(!ok)toast('No guardrails tab found, showing built-in.');});
+$('remToggle').addEventListener('click',toggleReminders);
+$('unlockBtn').addEventListener('click',tryUnlock);
+$('pinInput').addEventListener('keydown',(e)=>{if(e.key==='Enter')tryUnlock();});
+$('syncBtn').addEventListener('click',syncPending);
+$('pullBtn').addEventListener('click',pullRemote);
+$('saveEndpoint').addEventListener('click',async()=>{
+  const v=$('f_endpoint').value.trim();
+  localStorage.setItem(LS_ENDPOINT,v);
+  toast('Endpoint saved');
+  await fetchSchedule();
+  await fetchGuardrails();
+  scheduleReminders();
+  await pullRemote();
+});
+$('exportBtn').addEventListener('click',()=>{
+  const blob=new Blob([JSON.stringify(loadLogs(),null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='checkins.json';a.click();
+});
+
+/* ---------------- INIT ---------------- */
+$('f_date').value=todayKey();
+$('f_endpoint').value=endpoint();
+const _cachedSched=scheduleFromCache(); if(_cachedSched) SCHEDULE=_cachedSched;
+const _cachedGuard=guardFromCache(); if(_cachedGuard) GUARD=_cachedGuard;
+renderSchedule(); renderGuard(); renderRef(); renderHistory(); renderReminderUI();
+if(remindersOn()) scheduleReminders();
+if(endpoint()){ setSync('pending','connecting…'); fetchSchedule(); fetchGuardrails(); syncPending(); } else { setSync('off','local only'); }
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+}
+</script>
+</body>
+</html>
