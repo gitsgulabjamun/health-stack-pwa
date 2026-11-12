@@ -111,7 +111,7 @@
     <div class="banner">Tap an item to see the advisor note. Checkboxes track today's doses and reset each day. Not a prescription. Confirm changes with your doctor.</div>
     <button class="ghost" id="refreshSched" style="margin-bottom:12px">↻ Refresh from sheet</button>
     <div id="scheduleList"></div>
-    <div class="disclaimer">Revised advisory, July 2026. For discussion with your doctor or pharmacist.</div>
+    <div class="disclaimer">Revised advisory, July 2026. Hair Rx from Dr. Sushrut Save (14 Apr 2026) added Nov 2026. For discussion with your doctor or pharmacist.</div>
   </section>
 
   <!-- GUARDRAILS -->
@@ -217,18 +217,19 @@
 const DEFAULT_SCHEDULE = [
   ["7:30 AM","Ghee in warm water","2 tsp","Digestion","Keep","Empty stomach. Fine."],
   ["7:40 AM","Shilapravang","1 dose","Testosterone and vitality","Reconsider","Marketed to help male vitality but unproven, and the heavy metal purity risk works against reproductive health because lead is gonadotoxic. Discuss stopping."],
-  ["7:45 AM","Citrulline Malate","6 g","Nitric oxide and endurance","Keep with caution","Also supports erectile function (same NO pathway as ED drugs). Adds to BP lowering from Cilacar-T and Lonitab. Only when training. Check BP on workout mornings; stop if lightheaded."],
-  ["7:50 AM","Acetyl L-Carnitine","1 cap","Energy and fat metabolism","Drop","Some upside for sperm quality, but marginal general benefit and carnitine raises TMAO which is linked to cardiovascular risk. Net: drop."],
+  ["7:45 AM","Citrulline Malate","6 g","Nitric oxide and endurance","On hold","Paused while workouts are on hold. It adds to the BP lowering from Lonitab (Dr. Save) and Cilacar-T, which raises the risk of dizziness. If you restart it with training, check BP on workout mornings and stop if lightheaded."],
+  ["7:50 AM","Acetyl L-Carnitine","1 cap","Energy and fat metabolism","Skip (not started)","Not started, and not needed. Dr. Save's Androanagen already provides acetyl L-carnitine, so a separate capsule would double the dose. Carnitine also raises TMAO, which is linked to cardiovascular risk."],
   ["7:55 AM","Matcha Tea","1 cup","Focus and gentle energy","Keep","Caffeine raises BP acutely. Fine but note timing near workout."],
   ["8:00-8:45 AM","Workout (fasted)","-","Fat burn and insulin sensitivity","On hold","Paused for shoulder injury. Resume when cleared."],
   ["8:45 AM","Creatine","1 scoop","Strength and recovery","Keep","Safe. Fine at maintenance during the break. Raises lab creatinine harmlessly; tell any doctor."],
   ["8:50 AM","Whey Iso-Zero","1 scoop","Protein and recovery","Keep","Good."],
   ["9:15 AM","Breakfast","-","Morning meal","Keep","Protein plus complex carbs plus healthy fats."],
-  ["9:20 AM","Lonitab 2.5 (oral minoxidil)","1 tab","Hair (androgenetic alopecia)","Keep","Oral minoxidil is a systemic vasodilator that also lowers BP. Same time daily with food. MONITOR: ankle or leg swelling, facial puffiness, sudden weight gain, palpitations or faster resting pulse, breathlessness lying flat or chest discomfort (seek care). Not finasteride, so you avoided the classic hair-drug sexual side effects. Ensure BP doctor and dermatologist each know the other's prescription."],
+  ["9:20 AM","Lonitab 2.5 (oral minoxidil)","1 tab","Hair (androgenetic alopecia)","Prescribed (Dr. Save)","Rx Dr. Sushrut Save, 14 Apr 2026: 1 daily x 2 months, follow up in 2 months. That window ended mid June, so confirm with him that you should continue. Oral minoxidil is a systemic vasodilator that also lowers BP. Same time daily with food. MONITOR: ankle or leg swelling, facial puffiness, sudden weight gain, palpitations or faster resting pulse, breathlessness lying flat or chest discomfort (seek care). Not finasteride, so you avoided the classic hair-drug sexual side effects. Ensure BP doctor and dermatologist each know the other's prescription."],
   ["9:30 AM","Glutathione Complex","1 cap","Antioxidant","Reconsider","Poor oral absorption. Low value for the cost."],
   ["9:45 AM","Marine Collagen","1 tab","Skin and joints","Optional","Harmless. Evidence is modest. Discretionary."],
   ["10:00 AM","Menovan D3 with K2","1 tab","Bone and heart","Keep","Take with a fatty meal. Adequate vitamin D also supports testosterone and statin muscle tolerance."],
   ["1:00 PM","Lunch","-","Main meal","Keep","Balanced meal with moderate carbs."],
+  ["1:00 PM","Androanagen","1 tab","Hair (nutritional support)","Prescribed (Dr. Save)","Rx Dr. Sushrut Save, 14 Apr 2026: 1 daily x 2 months. Taken with lunch so its iron and zinc are absorbed away from morning matcha and whey. Hair supplement; one pharmacy listing shows zinc, iron (ferrous fumarate), copper, green tea extract and about 250 mg acetyl L-carnitine, another lists amino acids, taurine and beta-sitosterol. This is your carnitine source, so do not add the standalone Acetyl L-Carnitine capsule. Magnesium at night is already well apart."],
   ["1:00 PM","Curcumin (piperine free)","1 tab","Anti-inflammatory","Change formulation","Switch off the piperine version. Piperine raises the level of cilnidipine and other drugs. Use a phytosome or BCM-95 type. Mild added bleeding risk with aspirin."],
   ["1:00 PM","Fish Oil (Omega-3)","1-2 g EPA+DHA","Triglycerides and heart","Add","Complements fenofibrate for triglycerides and adds cardiovascular benefit. Keep the dose moderate because high-dose fish oil on top of aspirin raises bleeding risk. Take with a meal."],
   ["1:30 PM","Madhumeha Kusumakar Rasa","1 tab","Sugar control","Stop pending review","Contains metal bhasmas including possible lead. Unproven for prediabetes. Ask doctor for liver panel and blood lead level. Berberine is an evidence-based alternative to raise with your doctor."],
@@ -240,7 +241,8 @@ const DEFAULT_SCHEDULE = [
   ["9:00 PM","Ecosprin 75","1 tab","Antiplatelet","Keep","As prescribed. Do not stack blood-thinning supplements on top. Flag before dental or surgical work."],
   ["10:15 PM","Magnesium Glycinate","1 tab","Sleep and relaxation","Keep","Moved from 9:00 PM. Keep about two hours clear of the tablets. Also mildly supports testosterone."],
   ["Alt days 10:15 PM","Magnesium Threonate","1 tab","Memory","Keep","Alternate with glycinate. Not together."],
-  ["Alt days","Logihair Serum (topical)","few drops","Hair (scalp)","Keep","Botanical serum with saw palmetto (a DHT blocker). Topical and alternate days, so systemic effect is negligible. No minoxidil or finasteride in it."],
+  ["3x/week night","Logihair Serum (topical)","few drops","Hair (scalp)","Prescribed (Dr. Save)","Rx Dr. Sushrut Save, 14 Apr 2026: thrice a week, at night, on the scalp (for example Mon, Wed, Fri). Botanical serum with saw palmetto (a DHT blocker). Topical and only a few nights a week, so systemic effect is negligible. No minoxidil or finasteride in it."],
+  ["Wash days","8X KT Shampoo","lather on scalp","Scalp (dandruff, fungal)","Prescribed (Dr. Save)","Rx Dr. Sushrut Save, 14 Apr 2026. Ketoconazole 2% plus zinc pyrithione 1% (Cipla). Shake well, lather into a wet scalp, leave 2 to 3 minutes, rinse. Frequency is not written on the Rx; the pack says every 3 days for up to 4 weeks or as your doctor directs, so confirm with Dr. Save. Keep out of eyes."],
   ["Alt days","Hyalugel (topical)","thin layer","Face (hydration)","Keep","Topical hyaluronic acid. Stays in the skin. No interaction."]
 ];
 let SCHEDULE = DEFAULT_SCHEDULE;
@@ -279,10 +281,10 @@ function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show')
 
 function statusClass(s){
   s=s.toLowerCase();
-  if(s.startsWith('keep')) return 'p-keep';
+  if(s.startsWith('keep')||s.startsWith('prescribed')) return 'p-keep';
   if(s.startsWith('add')) return 'p-add';
   if(s.startsWith('stop')) return 'p-stop';
-  if(s.startsWith('drop')) return 'p-drop';
+  if(s.startsWith('drop')||s.startsWith('skip')) return 'p-drop';
   if(s.startsWith('reconsider')||s.startsWith('change')||s.startsWith('optional')||s.startsWith('on hold')) return 'p-reconsider';
   return 'p-caution';
 }
