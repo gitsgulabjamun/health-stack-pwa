@@ -111,7 +111,7 @@
     <div class="banner">Tap an item to see the advisor note. Checkboxes track today's doses and reset each day. Not a prescription. Confirm changes with your doctor.</div>
     <button class="ghost" id="refreshSched" style="margin-bottom:12px">↻ Refresh from sheet</button>
     <div id="scheduleList"></div>
-    <div class="disclaimer">Revised advisory, July 2026. For discussion with your doctor or pharmacist.</div>
+    <div class="disclaimer">Revised advisory, July 2026. Hair Rx from Dr. Sushrut Save (14 Apr 2026) added Nov 2026. For discussion with your doctor or pharmacist.</div>
   </section>
 
   <!-- GUARDRAILS -->
@@ -224,7 +224,8 @@ const DEFAULT_SCHEDULE = [
   ["8:45 AM","Creatine","1 scoop","Strength and recovery","Keep","Safe. Fine at maintenance during the break. Raises lab creatinine harmlessly; tell any doctor."],
   ["8:50 AM","Whey Iso-Zero","1 scoop","Protein and recovery","Keep","Good."],
   ["9:15 AM","Breakfast","-","Morning meal","Keep","Protein plus complex carbs plus healthy fats."],
-  ["9:20 AM","Lonitab 2.5 (oral minoxidil)","1 tab","Hair (androgenetic alopecia)","Keep","Oral minoxidil is a systemic vasodilator that also lowers BP. Same time daily with food. MONITOR: ankle or leg swelling, facial puffiness, sudden weight gain, palpitations or faster resting pulse, breathlessness lying flat or chest discomfort (seek care). Not finasteride, so you avoided the classic hair-drug sexual side effects. Ensure BP doctor and dermatologist each know the other's prescription."],
+  ["9:20 AM","Lonitab 2.5 (oral minoxidil)","1 tab","Hair (androgenetic alopecia)","Keep","Rx Dr. Sushrut Save, 14 Apr 2026: 1 daily x 2 months, follow up in 2 months. That window ended mid June, so confirm with him that you should continue. Oral minoxidil is a systemic vasodilator that also lowers BP. Same time daily with food. MONITOR: ankle or leg swelling, facial puffiness, sudden weight gain, palpitations or faster resting pulse, breathlessness lying flat or chest discomfort (seek care). Not finasteride, so you avoided the classic hair-drug sexual side effects. Ensure BP doctor and dermatologist each know the other's prescription."],
+  ["9:20 AM","Androanagen","1 tab","Hair (nutritional support)","Keep","Rx Dr. Sushrut Save, 14 Apr 2026: 1 daily x 2 months, taken with Lonitab after breakfast. Hair supplement; one pharmacy listing shows zinc, iron (ferrous fumarate), copper, green tea extract and about 250 mg acetyl L-carnitine, another lists amino acids, taurine and beta-sitosterol. Read your strip label. If it has carnitine, it duplicates the standalone Acetyl L-Carnitine, which is already marked Drop. Keep it two hours away from Magnesium at night, which it already is."],
   ["9:30 AM","Glutathione Complex","1 cap","Antioxidant","Reconsider","Poor oral absorption. Low value for the cost."],
   ["9:45 AM","Marine Collagen","1 tab","Skin and joints","Optional","Harmless. Evidence is modest. Discretionary."],
   ["10:00 AM","Menovan D3 with K2","1 tab","Bone and heart","Keep","Take with a fatty meal. Adequate vitamin D also supports testosterone and statin muscle tolerance."],
@@ -240,7 +241,8 @@ const DEFAULT_SCHEDULE = [
   ["9:00 PM","Ecosprin 75","1 tab","Antiplatelet","Keep","As prescribed. Do not stack blood-thinning supplements on top. Flag before dental or surgical work."],
   ["10:15 PM","Magnesium Glycinate","1 tab","Sleep and relaxation","Keep","Moved from 9:00 PM. Keep about two hours clear of the tablets. Also mildly supports testosterone."],
   ["Alt days 10:15 PM","Magnesium Threonate","1 tab","Memory","Keep","Alternate with glycinate. Not together."],
-  ["Alt days","Logihair Serum (topical)","few drops","Hair (scalp)","Keep","Botanical serum with saw palmetto (a DHT blocker). Topical and alternate days, so systemic effect is negligible. No minoxidil or finasteride in it."],
+  ["3x/week night","Logihair Serum (topical)","few drops","Hair (scalp)","Keep","Rx Dr. Sushrut Save, 14 Apr 2026: thrice a week, at night, on the scalp (for example Mon, Wed, Fri). Botanical serum with saw palmetto (a DHT blocker). Topical and only a few nights a week, so systemic effect is negligible. No minoxidil or finasteride in it."],
+  ["Wash days","8X KT Shampoo","lather on scalp","Scalp (dandruff, fungal)","Keep","Rx Dr. Sushrut Save, 14 Apr 2026. Ketoconazole 2% plus zinc pyrithione 1% (Cipla). Shake well, lather into a wet scalp, leave 2 to 3 minutes, rinse. Frequency is not written on the Rx; the pack says every 3 days for up to 4 weeks or as your doctor directs, so confirm with Dr. Save. Keep out of eyes."],
   ["Alt days","Hyalugel (topical)","thin layer","Face (hydration)","Keep","Topical hyaluronic acid. Stays in the skin. No interaction."]
 ];
 let SCHEDULE = DEFAULT_SCHEDULE;
