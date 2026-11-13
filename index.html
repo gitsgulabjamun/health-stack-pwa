@@ -224,12 +224,14 @@ const DEFAULT_SCHEDULE = [
   ["8:45 AM","Creatine","1 scoop","Strength and recovery","Keep","Safe. Fine at maintenance during the break. Raises lab creatinine harmlessly; tell any doctor."],
   ["8:50 AM","Whey Iso-Zero","1 scoop","Protein and recovery","Keep","Good."],
   ["9:15 AM","Breakfast","-","Morning meal","Keep","Protein plus complex carbs plus healthy fats."],
+  ["9:15 AM","Zincovit","1 tab","Immunity (short course)","10 day course","Temporary while viral infections are going around, 13 to 22 Nov 2026, then stop. After breakfast. Adds about 10 to 17 mg zinc on top of the 10 mg in Androanagen; fine short term, not for months because extra zinc can lower copper.","2026-11-22"],
   ["9:20 AM","Lonitab 2.5 (oral minoxidil)","1 tab","Hair (androgenetic alopecia)","Prescribed (Dr. Save)","Rx Dr. Sushrut Save, 14 Apr 2026: 1 daily x 2 months, follow up in 2 months. That window ended mid June, so confirm with him that you should continue. Oral minoxidil is a systemic vasodilator that also lowers BP. Same time daily with food. MONITOR: ankle or leg swelling, facial puffiness, sudden weight gain, palpitations or faster resting pulse, breathlessness lying flat or chest discomfort (seek care). Not finasteride, so you avoided the classic hair-drug sexual side effects. Ensure BP doctor and dermatologist each know the other's prescription."],
   ["9:30 AM","Glutathione Complex","1 cap","Antioxidant","Reconsider","Poor oral absorption. Low value for the cost."],
   ["9:45 AM","Marine Collagen","1 tab","Skin and joints","Optional","Harmless. Evidence is modest. Discretionary."],
   ["10:00 AM","Menovan D3 with K2","1 tab","Bone and heart","Keep","Take with a fatty meal. Adequate vitamin D also supports testosterone and statin muscle tolerance."],
   ["1:00 PM","Lunch","-","Main meal","Keep","Balanced meal with moderate carbs."],
   ["1:00 PM","Androanagen","1 tab","Hair (nutritional support)","Prescribed (Dr. Save)","Rx Dr. Sushrut Save, 14 Apr 2026: 1 daily x 2 months. Taken with lunch so its iron and zinc are absorbed away from morning matcha and whey. Hair supplement; one pharmacy listing shows zinc, iron (ferrous fumarate), copper, green tea extract and about 250 mg acetyl L-carnitine, another lists amino acids, taurine and beta-sitosterol. This is your carnitine source, so do not add the standalone Acetyl L-Carnitine capsule. Magnesium at night is already well apart."],
+  ["1:00 PM","Celin 500 (vitamin C)","1 tab","Immunity (short course)","10 day course","Temporary, 13 to 22 Nov 2026, then stop. Taken with Androanagen at lunch because vitamin C helps absorb its iron.","2026-11-22"],
   ["1:00 PM","Curcumin (piperine free)","1 tab","Anti-inflammatory","Change formulation","Switch off the piperine version. Piperine raises the level of cilnidipine and other drugs. Use a phytosome or BCM-95 type. Mild added bleeding risk with aspirin."],
   ["1:00 PM","Fish Oil (Omega-3)","1-2 g EPA+DHA","Triglycerides and heart","Add","Complements fenofibrate for triglycerides and adds cardiovascular benefit. Keep the dose moderate because high-dose fish oil on top of aspirin raises bleeding risk. Take with a meal."],
   ["1:30 PM","Madhumeha Kusumakar Rasa","1 tab","Sugar control","Stop pending review","Contains metal bhasmas including possible lead. Unproven for prediabetes. Ask doctor for liver panel and blood lead level. Berberine is an evidence-based alternative to raise with your doctor."],
@@ -270,6 +272,9 @@ const REF = [
 const LS_LOGS='hs_logs', LS_ENDPOINT='hs_endpoint', LS_TAKEN='hs_taken';
 const $=(id)=>document.getElementById(id);
 const todayKey=()=>new Date().toISOString().slice(0,10);
+function localDay(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function expired(r){return !!(r[6]&&localDay()>r[6]);}
+function fmtUntil(u){const m=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];const p=u.split('-');return ' · until '+(+p[2])+' '+m[+p[1]-1];}
 function uuid(){return 'x'+Date.now().toString(36)+Math.random().toString(36).slice(2,8);}
 function loadLogs(){try{return JSON.parse(localStorage.getItem(LS_LOGS)||'[]');}catch(e){return[];}}
 function saveLogs(a){localStorage.setItem(LS_LOGS,JSON.stringify(a));}
@@ -282,6 +287,7 @@ function toast(msg){const t=$('toast');t.textContent=msg;t.classList.add('show')
 function statusClass(s){
   s=s.toLowerCase();
   if(s.startsWith('keep')||s.startsWith('prescribed')) return 'p-keep';
+  if(/course/.test(s)) return 'p-add';
   if(s.startsWith('add')) return 'p-add';
   if(s.startsWith('stop')) return 'p-stop';
   if(s.startsWith('drop')||s.startsWith('skip')) return 'p-drop';
@@ -294,7 +300,8 @@ function renderSchedule(){
   const taken=loadTaken(); const day=todayKey();
   const wrap=$('scheduleList'); wrap.innerHTML='';
   SCHEDULE.forEach((r,i)=>{
-    const [time,item,dose,purpose,status,note]=r;
+    if(expired(r)) return;
+    const [time,item,dose,purpose,status,note,until]=r;
     const key=day+'|'+i;
     const on=!!(taken[key]);
     const card=document.createElement('div'); card.className='card';
@@ -306,7 +313,7 @@ function renderSchedule(){
             '<span class="item-name">'+item+'</span>'+
             '<span class="time-pill">'+time+'</span>'+
           '</div>'+
-          '<div class="item-meta">'+dose+' · '+purpose+'</div>'+
+          '<div class="item-meta">'+dose+' · '+purpose+(until?fmtUntil(until):'')+'</div>'+
           '<div style="margin-top:6px"><span class="pill '+statusClass(status)+'">'+status+'</span></div>'+
           '<div class="expand" data-exp="'+i+'">Advisor note</div>'+
           '<div class="note" id="note-'+i+'">'+note+'</div>'+
@@ -571,6 +578,7 @@ function scheduleReminders(){
   if(!remindersOn()) return;
   const groups={};
   SCHEDULE.forEach(r=>{
+    if(expired(r)) return;
     const c=parseClock(r[0]); if(!c) return;
     const key=c.h+':'+c.min;
     if(!groups[key]) groups[key]={c,items:[]};
